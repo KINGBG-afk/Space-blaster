@@ -72,5 +72,4 @@ int update_terminal_size(void)
     term_cols = ws.ws_col;
     term_rows = ws.ws_row;
     return 0;
-
 }

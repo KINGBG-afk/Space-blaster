@@ -2,13 +2,13 @@
 #include "game.h"
 #include "utils.h"
 #include "input.h"
+#include "timer.h"
 #include <string.h>
 
 // BUG: when resizing get_char detects a symbol: �
 // decodes to: 239 191 189
 
-#define FPS 15;
-#define FRAME_TIME (1000 / FPS);
+#define FPS 30
 
 int running = 0;
 
@@ -37,8 +37,11 @@ void start_game(void)
     center_text("|  Press U to access upgrade menu  |", term_cols);
     center_text("|         Press P to pause         |", term_cols);
     center_text(" |__________________________________|\n", term_cols);
-    center_text("Press Q to exit", term_cols);
     center_text("Press E to play", term_cols);
+    center_text("Press Q to exit\n", term_cols);
+    center_text("WARNING!", term_cols);
+    center_text("DO NOT USE Ctrl+C to exit the program!", term_cols);
+    center_text("it may lead to unexpected behavior", term_cols);
 
     // maybe get_char() needs refactoring?
     char ch = get_char();
@@ -56,18 +59,10 @@ void start_game(void)
     // entering main game loop
     Player player = {
         .x = 10,
-        .y = 10,
+        .y = MIN_ROWS - PLAYER_HEIGHT, // move to the bottom of the screen
         .health = 3,
         .damage = 1,
     };
-
-    for (int i = 0; i < MIN_ROWS; i++)
-    {
-        for (int j = 0; j < MIN_COLS; j++)
-        {
-            game_screen[i][j] = '.';
-        }
-    }
 
     running = 1;
 
@@ -106,6 +101,8 @@ void start_game(void)
         clear_screen_array();
         draw_player(&player);
         render_screen();
+
+        limit_fps(FPS);
     }
 
     exit_game();
@@ -116,7 +113,7 @@ void clear_screen_array(void)
     for (int y = 0; y < MIN_ROWS; y++)
     {
         // set MIN_COLS bytes of ' ' in one row
-        memset(game_screen[y], ' ', MIN_COLS);
+        memset(game_screen[y], '.', MIN_COLS);
         game_screen[y][MIN_COLS] = '\0'; // add null char
     }
 }
