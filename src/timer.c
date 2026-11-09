@@ -19,7 +19,7 @@ void limit_fps(int fps)
     static LARGE_INTEGER previous = {0};
     LARGE_INTEGER now;
 
-    QueryPerformanceFrequency(&now);
+    QueryPerformanceCounter(&now);
     if (previous.QuadPart == 0)
     {
         previous = now;
@@ -27,7 +27,7 @@ void limit_fps(int fps)
     }
 
     double target = 1.0 / fps;
-    double elapsed = (double)(now.QuadPart - previouse.QuarPart) / frequency.QuadPart;
+    double elapsed = (double)(now.QuadPart - previous.QuarPart) / frequency.QuadPart;
 
     if (elapsed < target)
     {
@@ -64,7 +64,7 @@ void limit_fps(int fps)
     {
         struct timespec sleep_time = {
             .tv_sec = (time_t)remaining,
-            .tv_nsec = (long)(remaining - (time_t)remaining * 1e9)};
+            .tv_nsec = (long)((remaining - (time_t)remaining) * 1e9)};
         nanosleep(&sleep_time, NULL);
     }
     previous = now;

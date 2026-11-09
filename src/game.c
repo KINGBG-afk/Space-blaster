@@ -9,8 +9,6 @@
 // BUG: when resizing get_char detects a symbol: �
 // decodes to: 239 191 189
 
-#define FPS 30
-
 int running = 0;
 
 // this is what the player will see
@@ -64,6 +62,7 @@ void start_game(void)
     };
 
     running = 1;
+    int once = 0;
 
     input_init();
     clear_screen();
@@ -84,7 +83,7 @@ void start_game(void)
                 move_player_right(&player);
                 break;
             case ' ':
-                spawn_bullet(PLAYER, player.x + 2, player.y- 1, 1);
+                spawn_bullet(PLAYER, player.x + 2, player.y - 1, 1);
                 printf("spawned a bullet\n");
                 break;
             case 'p':
@@ -97,15 +96,21 @@ void start_game(void)
             }
         }
 
-        
         // render
+        clear_screen();
         clear_screen_array();
         draw_player(&player);
         draw_bullets();
         render_screen();
-        
+
         // update game state
-        update_bullets();
+        if (once)
+        {
+            update_bullets();
+            once = 0;
+        }
+        else
+            once = 1;
 
         limit_fps(FPS);
     }
