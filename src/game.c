@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "input.h"
 #include "timer.h"
+#include "bullet.h"
 #include <string.h>
 
 // BUG: when resizing get_char detects a symbol: �
@@ -14,9 +15,6 @@ int running = 0;
 
 // this is what the player will see
 char game_screen[MIN_ROWS][MIN_COLS + 1]; // +1 for the null char
-
-// moves cursor to the top of the console ready to print the game state
-// printf("\033[H");
 
 void start_game(void)
 {
@@ -31,9 +29,10 @@ void start_game(void)
     center_text("       | |                                                  ", term_cols);
     center_text("       |_|                                                  ", term_cols);
 
-    center_text("_____________|CONTROLS|_____________", term_cols);
+    center_text("_____________|CONTROLS| _____________", term_cols);
     center_text("|       Press A to move left       |", term_cols);
     center_text("|      Press D to move right       |", term_cols);
+    center_text("|         Press SPACE to shoot     |", term_cols);
     center_text("|  Press U to access upgrade menu  |", term_cols);
     center_text("|         Press P to pause         |", term_cols);
     center_text(" |__________________________________|\n", term_cols);
@@ -81,9 +80,12 @@ void start_game(void)
             case 'a':
                 move_player_left(&player);
                 break;
-
             case 'd':
                 move_player_right(&player);
+                break;
+            case ' ':
+                spawn_bullet(PLAYER, player.x + 2, player.y- 1, 1);
+                printf("spawned a bullet\n");
                 break;
             case 'p':
                 break;
@@ -95,12 +97,15 @@ void start_game(void)
             }
         }
 
-        // update game state
-
+        
         // render
         clear_screen_array();
         draw_player(&player);
+        draw_bullets();
         render_screen();
+        
+        // update game state
+        update_bullets();
 
         limit_fps(FPS);
     }
@@ -134,8 +139,25 @@ void draw_player(Player *player)
     }
 }
 
+void draw_bullets()
+{
+    for (int i = 0; i < MAX_BULLETS; i++)
+    {
+        if (!bullets[i].alive)
+            continue;
+
+        // check if position is valid
+        if (bullets[i].x < 0 || bullets[i].x >= MIN_COLS ||
+            bullets[i].y < 0 || bullets[i].y >= MIN_ROWS)
+            continue;
+
+        game_screen[bullets[i].y][bullets[i].x] = bullet_model;
+    }
+}
+
 void render_screen(void)
 {
+    // moves cursor to the top of the console ready to print the game state
     printf("\033[H");
 
     for (int y = 0; y < MIN_ROWS; y++)
@@ -148,7 +170,7 @@ void render_screen(void)
 
 void exit_game(void)
 {
-    printf("Exiting game");
+    printf("Exiting game\n");
 
     // show the cursor again
     printf("\033[?25h");

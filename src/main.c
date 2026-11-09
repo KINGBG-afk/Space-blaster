@@ -17,7 +17,6 @@ int main(void)
     // before anything starts
     // hide the cursor
     printf("\033[?25l");
-
     
     struct sigaction sa = {0};
     sa.sa_handler = on_resize;
