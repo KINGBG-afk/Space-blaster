@@ -17,6 +17,7 @@ int running = 0;
 
 // this is what the player will see
 char game_screen[MIN_ROWS][MIN_COLS + 1]; // +1 for the null char
+int alive_bullets = 0;
 
 void start_game(void)
 {
@@ -76,7 +77,7 @@ void run()
     // well bullets update half the amount of the fps
     int control_bullet_update = 0;
 
-    spawn_enemy(10, 10, 5, 5);
+    spawn_enemy(10, 10, 999, 5);
 
     input_init();
     clear_screen();
@@ -86,23 +87,18 @@ void run()
         if (!terminal_size_ok())
         {
             clear_screen();
+            printf("Game needs to be at least %u columns and %u rows big\n", MIN_COLS, MIN_ROWS);
             printf("Make the window bigger!\n");
-            paused = 1;
 
             // lets not waste extra resorces with that
             limit_fps(1);
             continue;
         }
-        else if (terminal_size_ok() && paused)
+
+        if (paused == 1)
         {
             clear_screen();
-            paused = 0;
-            continue;
-        }
-
-        if (paused)
-        {
-            continue;
+            printf("Game paused");
         }
         int key = input_poll();
 
@@ -122,7 +118,7 @@ void run()
                 spawn_bullet(PLAYER, player.x + 2, player.y - 1, 1);
                 break;
             case 'p':
-                paused = 1;
+                paused = paused ? 0 : 1;
                 break;
             case 'u':
                 break;
@@ -132,7 +128,7 @@ void run()
             }
         }
 
-        // used for debug pourpeses only
+        // used for debug pourpeses only when rendering
         // clear_screen();
 
         // render
@@ -141,11 +137,13 @@ void run()
         draw_enemies();
         draw_bullets();
         render_screen();
+        printf("%d", alive_bullets);
+        alive_bullets = 0;
 
         // update game elements
         if (control_bullet_update)
         {
-            update_bullets();
+            update_bullets(&player);
             control_bullet_update = 0;
         }
         else
@@ -215,6 +213,7 @@ void draw_bullets()
         if (!bullets[i].alive)
             continue;
 
+        alive_bullets++;
         // check if position is valid
         if (bullets[i].x < 0 || bullets[i].x >= MIN_COLS ||
             bullets[i].y < 0 || bullets[i].y >= MIN_ROWS)

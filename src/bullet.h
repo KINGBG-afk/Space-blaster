@@ -1,3 +1,5 @@
+#include "player.h"
+
 #ifndef BULLET_H
 #define BULLET_H
 
@@ -23,7 +25,7 @@ typedef struct
 extern Bullet bullets[MAX_BULLETS];
 extern const char bullet_model;
 
-void update_bullets(void);
+void update_bullets(Player *player);
 int spawn_bullet(BulletOwner owner, int x, int y, int damage);
 
 #endif
