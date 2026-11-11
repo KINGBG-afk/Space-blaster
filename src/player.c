@@ -24,4 +24,3 @@ void damage_player(Player *player, int damage)
 {
     player->health -= damage;
 }
-

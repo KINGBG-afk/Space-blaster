@@ -31,7 +31,7 @@ void limit_fps(int fps)
 
     if (elapsed < target)
     {
-        DWORD miliseconds = (DWORD)((target - elapsed) * 100.0);
+        DWORD miliseconds = (DWORD)((target - elapsed) * 1000.0);
 
         if (miliseconds > 0)
         {

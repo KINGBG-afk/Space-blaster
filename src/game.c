@@ -4,11 +4,15 @@
 #include "input.h"
 #include "timer.h"
 #include "bullet.h"
+#include "enemy.h"
 #include <string.h>
 
 // BUG: when resizing get_char detects a symbol: �
 // decodes to: 239 191 189
 
+// apperently if its called 'pause'
+// the program gives segmentation fault
+int paused = 0;
 int running = 0;
 
 // this is what the player will see
@@ -16,6 +20,7 @@ char game_screen[MIN_ROWS][MIN_COLS + 1]; // +1 for the null char
 
 void start_game(void)
 {
+    // NOTE this is only needed for the starting screen of the game
     update_terminal_size();
 
     center_text("  _____                     ______ _           _            ", term_cols);
@@ -54,6 +59,11 @@ void start_game(void)
     } while (ch != 'e');
 
     // entering main game loop
+    run();
+}
+
+void run()
+{
     Player player = {
         .x = 10,
         .y = MIN_ROWS - PLAYER_HEIGHT, // move to the bottom of the screen
@@ -62,12 +72,38 @@ void start_game(void)
     };
 
     running = 1;
-    int once = 0;
+
+    // well bullets update half the amount of the fps
+    int control_bullet_update = 0;
+
+    spawn_enemy(10, 10, 5, 5);
 
     input_init();
     clear_screen();
     while (running)
     {
+        // pause the game untill it becomes the needed size
+        if (!terminal_size_ok())
+        {
+            clear_screen();
+            printf("Make the window bigger!\n");
+            paused = 1;
+
+            // lets not waste extra resorces with that
+            limit_fps(1);
+            continue;
+        }
+        else if (terminal_size_ok() && paused)
+        {
+            clear_screen();
+            paused = 0;
+            continue;
+        }
+
+        if (paused)
+        {
+            continue;
+        }
         int key = input_poll();
 
         // handle keys
@@ -84,9 +120,9 @@ void start_game(void)
                 break;
             case ' ':
                 spawn_bullet(PLAYER, player.x + 2, player.y - 1, 1);
-                printf("spawned a bullet\n");
                 break;
             case 'p':
+                paused = 1;
                 break;
             case 'u':
                 break;
@@ -96,21 +132,24 @@ void start_game(void)
             }
         }
 
+        // used for debug pourpeses only
+        // clear_screen();
+
         // render
-        clear_screen();
         clear_screen_array();
         draw_player(&player);
+        draw_enemies();
         draw_bullets();
         render_screen();
 
-        // update game state
-        if (once)
+        // update game elements
+        if (control_bullet_update)
         {
             update_bullets();
-            once = 0;
+            control_bullet_update = 0;
         }
         else
-            once = 1;
+            control_bullet_update = 1;
 
         limit_fps(FPS);
     }
@@ -122,7 +161,7 @@ void clear_screen_array(void)
 {
     for (int y = 0; y < MIN_ROWS; y++)
     {
-        // set MIN_COLS bytes of ' ' in one row
+        // set MIN_COLS bytes of '.' in one row
         memset(game_screen[y], '.', MIN_COLS);
         game_screen[y][MIN_COLS] = '\0'; // add null char
     }
@@ -139,6 +178,31 @@ void draw_player(Player *player)
             if (c != ' ')
             {
                 game_screen[player->y + y][player->x + x] = c;
+            }
+        }
+    }
+}
+
+// enemies_array just so they dont overlap
+void draw_enemies(void)
+{
+    for (int i = 0; i < MAX_ENEMIES; i++)
+    {
+        if (!enemies[i].alive)
+            continue;
+
+        for (int y = 0; y < ENEMY_HEIGHT; y++)
+        {
+            for (int x = 0; x < ENEMY_WIDTH; x++)
+            {
+                int screen_x = enemies[i].x + x;
+                int screen_y = enemies[i].y + y;
+
+                if (screen_x >= 0 && screen_x < MIN_COLS &&
+                    screen_y >= 0 && screen_y < MIN_ROWS)
+                {
+                    game_screen[screen_y][screen_x] = enemy_model[y][x];
+                }
             }
         }
     }
