@@ -25,7 +25,7 @@ typedef struct
 extern Bullet bullets[MAX_BULLETS];
 extern const char bullet_model;
 
-void update_bullets(Player *player);
+void update_bullets(Player *player, int *score);
 int spawn_bullet(BulletOwner owner, int x, int y, int damage);
 
 #endif

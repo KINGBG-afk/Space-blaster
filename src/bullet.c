@@ -5,7 +5,7 @@
 
 const char bullet_model = '|';
 Bullet bullets[MAX_BULLETS];
-void update_bullets(Player *player)
+void update_bullets(Player *player, int *score)
 {
     for (int i = 0; i < MAX_BULLETS; i++)
     {
@@ -32,7 +32,7 @@ void update_bullets(Player *player)
                 (bullet->y >= enemies[j].y && bullet->y <= enemies[j].y + ENEMY_HEIGHT))
             {
                 // hits enemy
-                damage_enemy(&enemies[j], bullet->damage);
+                *score += damage_enemy(&enemies[j], bullet->damage) * 10; // returns 1 if enemy is killed
                 bullet->alive = 0;
                 break;
             }

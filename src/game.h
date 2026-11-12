@@ -5,6 +5,7 @@
 
 #define FPS 22
 
+
 void start_game(void);
 void run();
 void run(void);

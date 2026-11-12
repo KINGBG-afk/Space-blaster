@@ -2,8 +2,8 @@
 #define UTILS_H
 
 // when making game loop this will be 100x40
-#define MIN_ROWS 24
-#define MIN_COLS 80
+#define MIN_ROWS 26
+#define MIN_COLS 84
 
 // externs means that it will be defined in utils.c
 extern unsigned short term_cols;

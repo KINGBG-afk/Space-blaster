@@ -10,13 +10,14 @@ const char *player_model[PLAYER_HEIGHT] = {
 
 void move_player_left(Player *player)
 {
-    if (player->x > 0)
+    if (player->x > 1)
         player->x--;
 }
 
 void move_player_right(Player *player)
 {
-    if (player->x < MIN_COLS - PLAYER_WIDTH)
+    // its -1 for the border and the same is the move_player_left
+    if (player->x < MIN_COLS - PLAYER_WIDTH - 1)
         player->x++;
 }
 
