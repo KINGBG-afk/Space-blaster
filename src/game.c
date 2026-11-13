@@ -8,17 +8,18 @@
 #include "enemy.h"
 #include "upgrades.h"
 
-// BUG: after you kill an enemy he is still there
 
 // apperently if its called 'pause'
-// the program gives a segmentation fault
+// the program gives a segmentation fault for some reason
 int paused = 0;
+
 int running = 0;
 int score = 0;
 
 // this is what the player will see
 // MIN_ROWS + 1 is for the border - same for MIN_COLS but we also add a null character
 char game_screen[MIN_ROWS + 1][MIN_COLS + 2];
+char stats_screen[STATS_ROWS + 1][MIN_COLS + 1];
 
 void start_game(void)
 {
@@ -72,10 +73,15 @@ void run()
     double fire_interval = FIRE_INTERVAL;
     double fire_timer = fire_interval;
 
+    // used to write player statistics
+    char score_buffer[14];
+    char health_buffer[128] = {0};
+    health_buffer[0] = '\0';
+
     Player player = {
         .x = 10,
         .y = MIN_ROWS - PLAYER_HEIGHT - 1, // move to the bottom of the screen
-        .health = 3,
+        .health = 5,
         .damage = 1,
     };
 
@@ -134,7 +140,17 @@ void run()
                 break;
             }
         }
+        // buildplayer statistics
+        snprintf(score_buffer, sizeof(score_buffer), "Score: %d", score);
+        int pos = 0;
 
+        for (int i = 0; i < player.health; i++)
+        {
+            pos += snprintf(
+                health_buffer + pos,
+                sizeof(health_buffer) - pos,
+                "♥ ");
+        }
         // used for debug pourpeses only when rendering
         // clear_screen();
 
@@ -143,8 +159,15 @@ void run()
         draw_player(&player);
         draw_enemies();
         draw_bullets();
-        render_screen();
-        printf("%d", score);
+        render_game_screen();
+
+        clear_stats_array();
+        draw_stats(1, 0, score_buffer);
+        draw_stats(MIN_COLS - 20, 0, health_buffer);
+        render_stats_screen();
+        fflush(stdout);
+
+        // printf("score: %d\t\t\t health: %d", score, player.health);
 
         // update game elements
         // bullets
@@ -166,7 +189,6 @@ void run()
 
         limit_fps(FPS);
     }
-
     exit_game();
 }
 
@@ -175,7 +197,6 @@ void clear_screen_array(void)
     for (int y = 0; y < MIN_ROWS; y++)
     {
         memset(game_screen[y], '.', MIN_COLS);
-
         for (int x = 0; x < MIN_COLS; x++)
         {
             // Top and bottom borders
@@ -186,8 +207,40 @@ void clear_screen_array(void)
             if (x == MIN_COLS - 1 || x == 0)
                 game_screen[y][x] = '|';
         }
-
         game_screen[y][MIN_COLS] = '\0';
+    }
+}
+
+void clear_stats_array(void)
+{
+    for (int y = 0; y < STATS_ROWS; y++)
+    {
+        memset(stats_screen[y], ' ', MIN_COLS);
+
+        for (int x = 0; x < MIN_COLS; x++)
+        {
+            // Top and bottom borders
+            if (y == STATS_ROWS - 1)
+                stats_screen[y][x] = '|';
+
+            // Left and right borders
+            if (x == MIN_COLS - 1 || x == 0)
+                stats_screen[y][x] = '|';
+        }
+
+        stats_screen[y][MIN_COLS] = '\0';
+    }
+}
+
+void draw_stats(int x, int y, char *s)
+{
+    if (y < 0 || y >= STATS_ROWS)
+        return;
+
+    for (int i = 0; s[i] != '\0' && x + i < MIN_COLS - 1; i++)
+    {
+        if (x + i >= 1)
+            stats_screen[y][x + i] = s[i];
     }
 }
 
@@ -248,7 +301,7 @@ void draw_bullets()
     }
 }
 
-void render_screen(void)
+void render_game_screen(void)
 {
     // moves cursor to the top of the console ready to print the game state
     printf("\033[H");
@@ -257,12 +310,19 @@ void render_screen(void)
     {
         center_text(game_screen[y], term_cols);
     }
-    fflush(stdout);
+}
+
+void render_stats_screen(void)
+{
+    for (int y = 0; y < STATS_ROWS; y++)
+    {
+        center_text(stats_screen[y], term_cols);
+    }
 }
 
 void exit_game(void)
 {
-    clear_screen();
+    // clear_screen();
     printf("Exiting game...\n");
     printf("Thanks for playing my game!\n");
 

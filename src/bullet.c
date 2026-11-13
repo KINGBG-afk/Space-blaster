@@ -1,6 +1,8 @@
 #include "bullet.h"
 #include "utils.h"
 #include "player.h"
+#include <stdlib.h>
+
 #include "enemy.h"
 
 const char bullet_model = '|';
@@ -25,7 +27,7 @@ void update_bullets(Player *player, int *score)
 
         for (int j = 0; j < MAX_ENEMIES; j++)
         {
-            if (!enemies[i].alive)
+            if (!enemies[j].alive)
                 continue;
             // check if bullet hit something
             if ((bullet->x >= enemies[j].x && bullet->x <= enemies[j].x + ENEMY_WIDTH) &&

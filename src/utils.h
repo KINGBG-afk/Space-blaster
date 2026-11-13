@@ -5,6 +5,8 @@
 #define MIN_ROWS 26
 #define MIN_COLS 84
 
+#define STATS_ROWS 7
+
 // externs means that it will be defined in utils.c
 extern unsigned short term_cols;
 extern unsigned short term_rows;

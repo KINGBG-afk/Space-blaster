@@ -59,7 +59,7 @@ int terminal_size_ok()
     struct winsize ws;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1)
         return 0;
-    return ws.ws_col >= MIN_COLS && ws.ws_row > MIN_ROWS;
+    return ws.ws_col >= MIN_COLS && ws.ws_row > MIN_ROWS + STATS_ROWS;
 }
 
 int update_terminal_size(void)

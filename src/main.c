@@ -27,7 +27,7 @@ int main(void)
     while (!terminal_size_ok())
     {
         clear_screen();
-        printf("Game needs to be at least %u columns and %u rows big\n", MIN_COLS, MIN_ROWS);
+        printf("Game needs to be at least %u columns and %u rows big\n", MIN_COLS, MIN_ROWS + STATS_ROWS);
         printf("Make the window bigger!\n");
         pause(); // woken by SIGWINCH
     }
