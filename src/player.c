@@ -16,7 +16,7 @@ void move_player_left(Player *player)
 
 void move_player_right(Player *player)
 {
-    // its -1 for the border and the same is the move_player_left
+    // its -1 for the border and its the same is the move_player_left
     if (player->x < MIN_COLS - PLAYER_WIDTH - 1)
         player->x++;
 }

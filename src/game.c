@@ -1,5 +1,7 @@
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "game.h"
 #include "utils.h"
 #include "input.h"
@@ -7,7 +9,7 @@
 #include "bullet.h"
 #include "enemy.h"
 #include "upgrades.h"
-
+#include "colors.h"
 
 // apperently if its called 'pause'
 // the program gives a segmentation fault for some reason
@@ -26,15 +28,18 @@ void start_game(void)
     // NOTE this is only needed for the starting screen of the game
     update_terminal_size();
 
+    printf(BOLD);
     center_text("  _____                     ______ _           _            ", term_cols);
     center_text(" /  ___|                    | ___ \\ |         | |           ", term_cols);
     center_text(" \\ `--. _ __   __ _  ___ ___| |_/ / | __ _ ___| |_ ___ _ __ ", term_cols);
-    center_text("  `--. \\ '_ \\ / _` |/ __/ _ \\ ___ \\ |/ _` / __| __/ _ \\ '__|", term_cols);
+    center_text("  `--. \\ '_ \ / _` |/ __/ _ \\ ___ \\ |/ _` / __| __/ _ \\ '__|", term_cols);
     center_text(" /\\__/ / |_) | (_| | (_|  __/ |_/ / | (_| \\__ \\ ||  __/ |   ", term_cols);
     center_text(" \\____/| .__/ \\__,_|\\___\\___\\____/|_|\\__,_|___/\\__\\___|_|   ", term_cols);
     center_text("       | |                                                  ", term_cols);
     center_text("       |_|                                                  ", term_cols);
+    printf(RESET);
 
+    printf("\x1b[1;32mq");
     center_text("_____________|CONTROLS|_____________", term_cols);
     center_text("|       Press A to move left        |", term_cols);
     center_text("|      Press D to move right        |", term_cols);
@@ -43,14 +48,18 @@ void start_game(void)
     center_text("|         Press P to pause          |", term_cols);
     center_text(" |___________________________________|\n", term_cols);
     center_text("Press E to play", term_cols);
-    center_text("Press Q to exit\n", term_cols);
+    center_text("Press Q to exit", term_cols);
+
+    printf("\n" RED);
     center_text("WARNING!", term_cols);
     center_text("DO NOT USE Ctrl+C to exit the program!", term_cols);
     center_text("it may lead to unexpected behavior", term_cols);
+    printf(RESET);
 
     // NOTE add this when game is done
-    /*
     // maybe get_char() needs refactoring?
+
+    /*
     char ch = get_char();
     do
     {
@@ -62,20 +71,26 @@ void start_game(void)
         }
 
     } while (ch != 'e');
-
     */
+
     run();
 }
 
 void run()
 {
     running = 1;
+
+    // needed for random behaiviorq
+    srand(time(NULL));
+
     double fire_interval = FIRE_INTERVAL;
     double fire_timer = fire_interval;
 
     // used to write player statistics
     char score_buffer[14];
     char health_buffer[128] = {0};
+
+    // if not added old hearths may remain
     health_buffer[0] = '\0';
 
     Player player = {
@@ -140,7 +155,8 @@ void run()
                 break;
             }
         }
-        // buildplayer statistics
+
+        // build player statistics
         snprintf(score_buffer, sizeof(score_buffer), "Score: %d", score);
         int pos = 0;
 
@@ -149,7 +165,7 @@ void run()
             pos += snprintf(
                 health_buffer + pos,
                 sizeof(health_buffer) - pos,
-                "♥ ");
+                RED "♥ " RESET);
         }
         // used for debug pourpeses only when rendering
         // clear_screen();
@@ -163,21 +179,27 @@ void run()
 
         clear_stats_array();
         draw_stats(1, 0, score_buffer);
-        draw_stats(MIN_COLS - 20, 0, health_buffer);
+        // draw_stats(MIN_COLS - 20, 0, health_buffer);
         render_stats_screen();
-        fflush(stdout);
 
-        // printf("score: %d\t\t\t health: %d", score, player.health);
+        // HACK: what im doing is not recomended at all
+        // please do not take the following 2 lines of code as insparation
+        printf("\033[%d;%dH", MIN_ROWS + 2, (term_cols / 2) + 5);
+        printf(RED "%s" RESET, health_buffer);
+
+        fflush(stdout);
 
         // update game elements
         // bullets
-        if (control_bullet_update)
+
+        if (!control_bullet_update)
         {
             update_bullets(&player, &score);
-            control_bullet_update = 0;
+            control_bullet_update = 2;
         }
         else
-            control_bullet_update = 1;
+            control_bullet_update--;
+        // control_bullet_update--;
 
         // player
         fire_timer += 1.0 / FPS;
@@ -185,6 +207,21 @@ void run()
         {
             spawn_bullet(PLAYER, player.x + 2, player.y - 1, 1);
             fire_timer -= fire_interval;
+        }
+
+        // enemies
+        for (int i = 0; i < MAX_ENEMIES; i++)
+        {
+            if (!enemies[i].alive)
+                continue;
+
+            // these numbers are randomly chosen
+            int r_num = rand() % 80;
+
+            if (r_num == 14)
+            {
+                spawn_bullet(ENEMY, enemies[i].x + 2, enemies[i].y + 2, 1);
+            }
         }
 
         limit_fps(FPS);
@@ -227,7 +264,6 @@ void clear_stats_array(void)
             if (x == MIN_COLS - 1 || x == 0)
                 stats_screen[y][x] = '|';
         }
-
         stats_screen[y][MIN_COLS] = '\0';
     }
 }

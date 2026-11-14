@@ -3,7 +3,7 @@
 #ifndef GAME_H // prevents a header being included twice
 #define GAME_H
 
-#define FPS 22
+#define FPS 20
 
 void start_game(void);
 void run();

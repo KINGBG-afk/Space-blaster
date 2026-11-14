@@ -1,7 +1,6 @@
 #include "bullet.h"
 #include "utils.h"
 #include "player.h"
-#include <stdlib.h>
 
 #include "enemy.h"
 
@@ -31,7 +30,8 @@ void update_bullets(Player *player, int *score)
                 continue;
             // check if bullet hit something
             if ((bullet->x >= enemies[j].x && bullet->x <= enemies[j].x + ENEMY_WIDTH) &&
-                (bullet->y >= enemies[j].y && bullet->y <= enemies[j].y + ENEMY_HEIGHT))
+                (bullet->y >= enemies[j].y && bullet->y <= enemies[j].y + ENEMY_HEIGHT) &&
+                bullet->owner == PLAYER)
             {
                 // hits enemy
                 *score += damage_enemy(&enemies[j], bullet->damage) * 10; // returns 1 if enemy is killed
@@ -39,7 +39,7 @@ void update_bullets(Player *player, int *score)
                 break;
             }
             else if ((bullet->x >= player->x && bullet->x <= player->x + PLAYER_WIDTH) &&
-                     (bullet->y >= player->y && bullet->y <= player->y + PLAYER_HEIGHT))
+                     (bullet->y >= player->y && bullet->y <= player->y + PLAYER_HEIGHT) && bullet->owner == ENEMY)
             {
                 // hits player
                 player->health--;
